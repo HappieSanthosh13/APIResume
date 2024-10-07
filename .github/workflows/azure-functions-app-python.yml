@@ -26,5 +26,5 @@ jobs:
         uses: azure/functions-action@v1
         with:
           app-name: 'your-function-app-name'
-          slot-name: 'production'
+          slot-name: 'resume-app-api'
           publish-profile: ${{ secrets.AZUREAPPPUBLISHPROFILE }}
