@@ -1,25 +1,22 @@
 import azure.functions as func
-import logging
+from azure.cosmos import CosmosClient
+import os
+import json
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    resume_id = req.params.get('id')
 
-@app.route(route="GetResume")
-def GetResume(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
+    url = os.environ['COSMOS_DB_URL']
+    key = os.environ['COSMOS_DB_KEY']
+    client = CosmosClient(url, credential=key)
+    database = client.get_database_client('yamlk ')
+    container = database.get_container_client('SampleContainer')
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    # Query the item
+    query = f"SELECT * FROM Resumes r WHERE r.id = '{id}'"
+    items = list(container.query_items(query, enable_cross_partition_query=True))
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    if items:
+        return func.HttpResponse(json.dumps(items[0]), mimetype="application/json")
     else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+        return func.HttpResponse("Resume not found", status_code=404)
